@@ -1,1 +1,10 @@
-测试
+# 强制直连
+DOMAIN-SUFFIX,mysite.com,DIRECT
+DOMAIN-SUFFIX,company-intranet.com,DIRECT
+
+# 强制代理
+DOMAIN-KEYWORD,pornhub,PROXY
+DOMAIN-SUFFIX,openai.com,PROXY
+
+# 去广告
+DOMAIN-KEYWORD,ad-spam,REJECT
