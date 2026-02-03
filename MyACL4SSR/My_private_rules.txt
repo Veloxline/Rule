@@ -1,22 +1,8 @@
-#示例
-# 强制直连
-#DOMAIN-SUFFIX,mysite.com,DIRECT
-#DOMAIN-SUFFIX,company-intranet.com,DIRECT
-
-# 强制代理
-#DOMAIN-KEYWORD,pornhub,PROXY
-#DOMAIN-SUFFIX,openai.com,PROXY
-
-# 去广告
-#DOMAIN-KEYWORD,ad-spam,REJECT
-
-#---------------------------------------
-
-#红果短剧去广告规则
-DOMAIN-SUFFIX,pangolin-sdk-toutiao.com,REJECT
-DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com,REJECT
-DOMAIN-SUFFIX,pglstatp-toutiao.com,REJECT
-DOMAIN-SUFFIX,zijieapi.com,REJECT
-DOMAIN-SUFFIX,frontier-toutiao.snssdk.com,REJECT
-DOMAIN-SUFFIX,ads5-normal-lf.zijieapi.com,REJECT
+#红果短剧去广告规则//以规则集的形式整合至其他远程配置文件中
+DOMAIN-SUFFIX,pangolin-sdk-toutiao.com
+DOMAIN-SUFFIX,pangolin-sdk-toutiao-b.com
+DOMAIN-SUFFIX,pglstatp-toutiao.com
+DOMAIN-SUFFIX,zijieapi.com
+DOMAIN-SUFFIX,frontier-toutiao.snssdk.com
+DOMAIN-SUFFIX,ads5-normal-lf.zijieapi.com
 
