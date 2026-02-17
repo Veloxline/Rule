@@ -5,4 +5,6 @@ DOMAIN-SUFFIX,pglstatp-toutiao.com
 DOMAIN-SUFFIX,zijieapi.com
 DOMAIN-SUFFIX,frontier-toutiao.snssdk.com
 DOMAIN-SUFFIX,ads5-normal-lf.zijieapi.com
+#屏敞谷歌ipv6
+IP-CIDR6,::/0,REJECT
 
