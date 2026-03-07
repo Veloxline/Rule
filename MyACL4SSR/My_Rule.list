@@ -1,3 +1,5 @@
+#自己维护的规则，制定相关域名走代理
+
 #所以google关键字的域名
 DOMAIN-KEYWORD,google
 
