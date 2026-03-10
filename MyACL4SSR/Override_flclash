@@ -1,0 +1,70 @@
+function main(config) {
+  // ---这是两个脚本整合为一个。整合后的脚本会先执行网络基础设置（UDP/IPv6/TUN），然后处理台湾中转节点的链路合并，最后配置并插入去广告规则集 ---
+  // --- 1. 网络基础设置与 TUN 模式配置 ---
+  config['udp'] = true; [cite: 1]
+  config['ipv6'] = false; [cite: 1] // 彻底关闭 IPv6 防止“幽灵泄露” [cite: 2]
+
+  config['tun'] = {
+    'enable': true,
+    'stack': 'gvisor',
+    'dns-hijack': ['any:53'],
+    'auto-route': true,
+    'auto-detect-interface': true
+  }; [cite: 2]
+
+  // --- 2. 台湾中转链路整合 ---
+  if (config.proxies && config.proxies.length > 0) { [cite: 7]
+    // 寻找指定的 DMIT 入口和台湾落地节点 [cite: 8]
+    let entryNode = config.proxies.find(p => p.name.includes("DMIT-LAX")); [cite: 8]
+    let exitNode = config.proxies.find(p => p.name.includes("bytevirt-TW")); [cite: 8]
+
+    if (entryNode && exitNode) { [cite: 9]
+      // 深度复制落地节点并创建中转链 [cite: 9, 10]
+      let chainedNode = JSON.parse(JSON.stringify(exitNode)); [cite: 9]
+      chainedNode.name = "🔗 台湾中转链 (DMIT)"; [cite: 10]
+      chainedNode['dialer-proxy'] = entryNode.name; [cite: 10]
+
+      // 将新节点加入总列表 [cite: 11]
+      config.proxies.push(chainedNode); [cite: 11]
+
+      // 将新节点注入所有策略组 [cite: 11]
+      if (config['proxy-groups']) { [cite: 11]
+        config['proxy-groups'].forEach(group => { [cite: 11]
+          if (group.proxies && Array.isArray(group.proxies)) { [cite: 11]
+            group.proxies.push(chainedNode.name); [cite: 11]
+          }
+        }); [cite: 11]
+      }
+    }
+  }
+
+  // --- 3. 定义高性能去广告规则集 (MRS 格式) ---
+  const providers = {
+    'awavenue': {
+      'type': 'http',
+      'behavior': 'domain',
+      'format': 'mrs',
+      'url': 'https://raw.githubusercontent.com/TG-Search/AWAvenue-Ads-Rule/main/Filters/AWAvenue-Ads-Rule-Clash.mrs',
+      'path': './ruleset/awavenue.mrs',
+      'interval': 86400
+    },
+    'anti-ad': {
+      'type': 'http',
+      'behavior': 'domain',
+      'format': 'mrs',
+      'url': 'https://raw.githubusercontent.com/privacy-protection-tools/anti-ad.github.io/master/docs/mihomo.mrs',
+      'path': './ruleset/anti-ad.mrs',
+      'interval': 86400
+    }
+  }; [cite: 3, 4]
+  config['rule-providers'] = providers; [cite: 4]
+
+  // --- 4. 将拦截规则强行插入到所有规则的最前面 ---
+  const adsRules = [
+    'RULE-SET,awavenue,REJECT',
+    'RULE-SET,anti-ad,REJECT'
+  ]; [cite: 5]
+  config.rules = adsRules.concat(config.rules || []); [cite: 6]
+
+  return config; [cite: 6]
+}
