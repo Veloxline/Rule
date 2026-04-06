@@ -1,3 +1,57 @@
-10
+   // dialer-proxy
+   // 分别以"DMIT-LAX"、"JMS-S3"作为入口，分别落地台湾、香港、日本
 
+function main(config) {
+  if (!config.proxies || config.proxies.length === 0) return config;
 
+  /**
+   * --- 配置区域 ---
+   * 格式：[入口关键字, 出口关键字, 自定义生成的节点名称]
+   */
+  const relayConfigs = [
+    // --- DMIT 作为入口 ---
+    ["DMIT-LAX", "bytevirt-TW", "🔗 DMIT_LA-TW"],
+    ["DMIT-LAX", "CloudSilk",  "🔗 DMIT_LA-HK"],
+    ["DMIT-LAX", "JMS-S4",  "🔗 DMIT_LA-JP"],	
+    
+    // --- JMS-S3 作为入口 ---
+    ["JMS-S3", "bytevirt-TW", "🔗 JMS_S3-TW"],
+    ["JMS-S3", "CloudSilk",  "🔗 JMS_S3-HK"],
+	["JMS-S3", "JMS-S4",  "🔗 JMS_S3-JP"]	
+  ];
+
+  const newChainedNodes = [];
+
+  // 1. 遍历配置，生成多条中转链
+  relayConfigs.forEach(([entryKey, exitKey, newName]) => {
+    // 寻找入口节点
+    const entryNode = config.proxies.find(p => p.name.includes(entryKey));
+    // 寻找出口落地节点 (现在会匹配 CloudSilk)
+    const exitNodeOriginal = config.proxies.find(p => p.name.includes(exitKey));
+    
+    if (entryNode && exitNodeOriginal) {
+      // 深度克隆出口节点，避免直接修改原节点导致冲突
+      let chainedNode = JSON.parse(JSON.stringify(exitNodeOriginal));
+      chainedNode.name = newName;
+      
+      // 核心设置：dialer-proxy
+      // 流量：你 -> DMIT/JMS -> CloudSilk/ByteVirt/JMS_S4-JP -> 目标网站
+      chainedNode['dialer-proxy'] = entryNode.name;
+      
+      // 将链式节点加入总代理列表
+      config.proxies.push(chainedNode);
+      newChainedNodes.push(newName);
+    }
+  });
+
+  // 2. 将生成的新节点名称注入到所有的策略组中
+  if (config['proxy-groups'] && newChainedNodes.length > 0) {
+    config['proxy-groups'].forEach(group => {
+      if (group.proxies && Array.isArray(group.proxies)) {
+        group.proxies.push(...newChainedNodes);
+      }
+    });
+  }
+
+  return config;
+}
